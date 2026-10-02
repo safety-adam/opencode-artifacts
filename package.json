@@ -1,0 +1,26 @@
+{
+  "name": "opencode-artifacts",
+  "version": "0.1.0",
+  "description": "OpenCode plugin that publishes commentable HTML artifacts. Ships a shared comment server and a skill for building them.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "tsconfig.json"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "artifacts",
+    "comments",
+    "html"
+  ],
+  "dependencies": {
+    "@opencode/plugin": "latest"
+  }
+}
