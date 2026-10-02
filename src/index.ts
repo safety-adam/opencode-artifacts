@@ -72,10 +72,8 @@ export default Plugin.define({
     void ensureServer(port, dataDir).catch(() => {})
 
     await ctx.tool.transform((editor) => {
-      editor.namespace({ name: "artifact", description: "Publish and manage commentable HTML artifacts" })
-
       editor.add({
-        name: "publish",
+        name: "artifact_publish",
         description:
           "Publish an HTML artifact that readers can comment on. Provide the full HTML, or a file path. The comment client is injected automatically and the artifact is served by the shared comment server. Returns the URL to open and share.",
         input: {
@@ -122,7 +120,7 @@ export default Plugin.define({
       } as any)
 
       editor.add({
-        name: "list",
+        name: "artifact_list",
         description: "List published artifacts from the shared comment server.",
         input: { type: "object", properties: {}, additionalProperties: false },
         async execute() {
