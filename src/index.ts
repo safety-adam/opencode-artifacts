@@ -1,6 +1,7 @@
 import { Plugin } from "@opencode/plugin"
-import { spawn } from "node:child_process"
+import { spawn, execFileSync } from "node:child_process"
 import { readFile, writeFile, mkdir } from "node:fs/promises"
+import { openSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 import os from "node:os"
@@ -28,14 +29,47 @@ async function isHealthy(port: number): Promise<boolean> {
   }
 }
 
+// OpenCode runs on its own binary, so process.execPath is not a JavaScript
+// runtime. Find a real node to run the server.
+function findNode(): string {
+  const candidates = [
+    process.env.ARTIFACT_NODE,
+    "node",
+    path.join(os.homedir(), ".local/share/mise/shims/node"),
+    "/opt/homebrew/bin/node",
+    "/usr/local/bin/node",
+    "/usr/bin/node",
+  ].filter(Boolean) as string[]
+  for (const candidate of candidates) {
+    try {
+      execFileSync(candidate, ["--version"], { stdio: "ignore", timeout: 3000 })
+      return candidate
+    } catch {
+      /* try the next candidate */
+    }
+  }
+  return "node"
+}
+
 // Start the shared comment server if it is not already running. The server is a
 // singleton on its port, so a second start exits quietly.
 async function ensureServer(port: number, dataDir: string): Promise<boolean> {
   if (await isHealthy(port)) return true
   try {
-    const child = spawn(process.execPath, [SERVER], {
+    await mkdir(dataDir, { recursive: true })
+  } catch {
+    /* the server also creates it */
+  }
+  let out: any = "ignore"
+  try {
+    out = openSync(path.join(dataDir, "server.log"), "a")
+  } catch {
+    /* fall back to ignoring output */
+  }
+  try {
+    const child = spawn(findNode(), [SERVER], {
       detached: true,
-      stdio: "ignore",
+      stdio: ["ignore", out, out],
       env: { ...process.env, ARTIFACT_COMMENT_PORT: String(port), ARTIFACT_DATA_DIR: dataDir },
     })
     child.unref()
